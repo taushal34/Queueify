@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="gov_style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+     <header>
+        <div class="logo">
+<a href="index.html">
+            <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+        </a>
+
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="home">About</a></li>
+                <li><a href="home">Contect</a></li>
+                <li><a href="home">Details</a></li>
+                <!-- <li><a href="home">Home</a></li> -->
+            </ul>
+
+        </div>
+        <div class="icon">
+            <i class="fa-brands fa-linkedin"></i>
+            <i class="fa-brands fa-instagram"></i>
+            <i class="fa-brands fa-facebook"></i>
+        </div>
+    </header>
+    <script src="auth.js">
+function updateAuthButton() {
+    const btn = document.getElementById('authBtn');
+    const token = localStorage.getItem('token');
+    if (token) {
+        btn.textContent = "Logout";
+        btn.onclick = function() {
+            localStorage.removeItem('token');
+            window.location.href = 'logout.html';
+        };
+    } else {
+        btn.textContent = "Login";
+        btn.onclick = function() {
+            window.location.href = 'login.html';
+        };
+    }
+}
+updateAuthButton();
+</script>
+</body>
+</html>

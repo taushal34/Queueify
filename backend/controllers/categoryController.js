@@ -4,7 +4,6 @@ const Subcategory = require("../models/Subcategory");
 exports.createCategory = async (req, res) => {
   try {
     const { name, key } = req.body;
-    // createdBy field add કરો
     const cat = await Category.create({ name, key, createdBy: req.user.id });
     res.status(201).json(cat);
   } catch (err) {
@@ -14,9 +13,15 @@ exports.createCategory = async (req, res) => {
 
 exports.createSubcategory = async (req, res) => {
   try {
-    const { name, key, categoryId, maxParallel } = req.body;
-    // createdBy field add કરો
-    const sub = await Subcategory.create({ name, key, category: categoryId, maxParallel, createdBy: req.user.id });
+    const { name, key, categoryId, maxParallel,  } = req.body; 
+    const sub = await Subcategory.create({
+      name,
+      key,
+      category: categoryId,
+      maxParallel,
+      // imageUrl, 
+      createdBy: req.user.id
+    });
     res.status(201).json(sub);
   } catch (err) {
     res.status(500).json({ message: err.message });

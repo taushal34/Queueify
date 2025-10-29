@@ -1,0 +1,118 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Category & Subcategory (Admin Only)</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">Details</a></li>
+            </ul>
+        </div>
+        <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+        </div>
+    </header>
+    <main class="auth-container">
+        <div id="admin-form-container" style="display:none;">
+            <form id="categoryForm" class="auth-form">
+                <h2>Add Category & Subcategory</h2>
+                <div class="input-group">
+                    <label for="categoryName">Category Name</label>
+                    <input type="text" id="categoryName" name="categoryName" placeholder="Enter category name" required>
+                </div>
+                <div class="input-group">
+                    <label for="subcategories">Subcategories (comma separated)</label>
+                    <input type="text" id="subcategories" name="subcategories" placeholder="e.g. Box One, Box Two, Box Three" required>
+                </div>
+                <div class="input-group">
+                    <label for="subcategoryImages">Subcategory Images (comma separated URLs, order must match subcategories)</label>
+                    <input type="text" id="subcategoryImages" name="subcategoryImages" placeholder="e.g. https://img1.jpg, https://img2.jpg, https://img3.jpg">
+                </div>
+                <button type="submit" class="submit-btn">Add</button>
+            </form>
+        </div>
+        <div id="not-admin-message" style="display:none;">
+            <h3>Only admin can add categories and subcategories.</h3>
+        </div>
+    </main>
+    <script>
+    // Show form only if user is admin
+    function showAdminForm() {
+        const role = localStorage.getItem('role');
+        if (role && role.toLowerCase() === "admin") {
+            document.getElementById('admin-form-container').style.display = "block";
+            document.getElementById('not-admin-message').style.display = "none";
+        } else {
+            document.getElementById('admin-form-container').style.display = "none";
+            document.getElementById('not-admin-message').style.display = "block";
+        }
+    }
+    showAdminForm();
+
+    // Optional: Update Login/Logout button
+    function updateAuthButton() {
+        const btn = document.getElementById('authBtn');
+        const token = localStorage.getItem('token');
+        if (token) {
+            btn.textContent = "Logout";
+            btn.onclick = function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                window.location.href = 'logout.html';
+            };
+        } else {
+            btn.textContent = "Login";
+            btn.onclick = function() {
+                window.location.href = 'login.html';
+            };
+        }
+    }
+    updateAuthButton();
+
+    // Handle form submit
+    document.getElementById('categoryForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const categoryName = document.getElementById('categoryName').value;
+        const subcategories = document.getElementById('subcategories').value.split(',').map(s => s.trim());
+        const subcategoryImages = document.getElementById('subcategoryImages').value.split(',').map(s => s.trim());
+        const token = localStorage.getItem('token');
+
+        // Prepare subcategory objects with imageUrl
+        const subcategoryData = subcategories.map((name, i) => ({
+            name,
+            imageUrl: subcategoryImages[i] || ""
+        }));
+
+        const res = await fetch('http://localhost:5000/api/categories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ categoryName, subcategories: subcategoryData })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            alert('Category and subcategories added successfully!');
+            document.getElementById('categoryForm').reset();
+        } else {
+            alert(data.message || 'Failed to add category.');
+        }
+    });
+    </script>
+</body>
+</html> -->

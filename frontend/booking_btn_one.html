@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="booking_btn_one.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Book Ticket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo animate__animated animate__bounceInDown">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar animate__animated animate__bounceInDown">
+            <ul>
+                <li><a href="TRAIN_Tikit.html">FLITE/TRAIN Tikit</a></li>
+                <li><a href="gov.html">GOVERNMENT WEBSITE</a></li>
+                <li><a href="movie.html">MOVIE Tikit</a></li>
+            </ul>
+        </div>
+        <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+        </div>
+    </header>
+
+    <div class="ticket_buy_img">
+        <div class="content">
+            <span>WHERE WOULD YOU</span>
+            <h2> LIKE TO GO ?</h2>
+            <form id="ticketForm" class="form" autocomplete="off">
+                <label for="from">FROM</label>
+                <input class="input_1" type="text" name="from" id="from" placeholder="Enter city" required>
+
+                <label for="to">TO</label>
+                <input class="input_1" type="text" name="to" id="to" placeholder="Enter city" required>
+
+                <label for="date">DATE</label>
+                <input class="input_1" type="date" name="date" id="date" required>
+
+                <label for="time">TIME</label>
+                <select class="input_1" name="time" id="time" required>
+                    <option value="">Select time</option>
+                    <option value="06:00 AM">06:00 AM</option>
+                    <option value="08:00 AM">08:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                </select>
+
+                <label for="price">PRICE</label>
+                <select class="input_1" name="price" id="price" required>
+                    <option value="">Select price</option>
+                    <option value="500">₹500</option>
+                    <option value="1000">₹1000</option>
+                    <option value="1500">₹1500</option>
+                </select>
+
+                <button type="submit" class="BOOK_NOW">BOOK NOW</button>
+            </form>
+            <div id="ticketResult" style="margin-top:20px;font-weight:bold;color:#4caf50;"></div>
+        </div>
+        <div class="imgge">
+            <img src="asesets/image/buy_ticect_train.png" alt="">
+        </div>
+    </div>
+  <script src="auth.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Set min date = today, max = today+30
+    const dateInput = document.getElementById('date');
+    const today = new Date();
+    const minDate = today.toISOString().split('T')[0];
+    const maxDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    dateInput.min = minDate;
+    dateInput.max = maxDate;
+    dateInput.value = minDate; // Set default value to today
+
+    // Auth button logic
+    function updateAuthButton() {
+        const btn = document.getElementById('authBtn');
+        const token = localStorage.getItem('token');
+        if (token) {
+            btn.textContent = "Logout";
+            btn.onclick = function () {
+                localStorage.removeItem('token');
+                window.location.href = 'logout.html';
+            };
+        } else {
+            btn.textContent = "Login";
+            btn.onclick = function () {
+                window.location.href = 'login.html';
+            };
+        }
+    }
+    updateAuthButton();
+
+    // Only allow access if user is active for this subcategory
+    const token = localStorage.getItem('token');
+    const subcatId = localStorage.getItem('lastSubcatId');
+    if (!token || !subcatId) {
+        alert("Unauthorized access!");
+        window.location.href = "index.html";
+        return;
+    }
+
+    // Polling logic for status check
+    function pollStatus() {
+        fetch(`http://localhost:5000/api/register/queue-position/${subcatId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "completed") {
+                alert("Your session is completed. Redirecting...");
+                window.location.href = "index.html";
+            } else if (data.status !== "active") {
+                alert("You are not allowed to access this page now.");
+                window.location.href = "index.html";
+            }
+        });
+    }
+    // Call once immediately, then every 3 seconds
+    pollStatus();
+    const pollInterval = setInterval(pollStatus, 3000);
+
+    // Form submit logic
+    document.getElementById('ticketForm').onsubmit = function (e) {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const subcatId = localStorage.getItem('lastSubcatId');
+        const from = document.getElementById('from').value;
+        const to = document.getElementById('to').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const price = document.getElementById('price').value;
+
+        // Validation
+        if (!from || !to || !date || !time || !price) {
+            document.getElementById('ticketResult').style.color = "#ff3333";
+            document.getElementById('ticketResult').textContent = "Please fill all fields!";
+            return;
+        }
+
+        fetch('http://localhost:5000/api/ticket/book', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ subcategoryId: subcatId, from, to, date, time, price })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('ticketResult').style.color = "#4caf50";
+                document.getElementById('ticketResult').innerHTML = `Your Ticket ID: <span style="color:#ff9800">${data.ticket_id}</span>`;
+            } else {
+                document.getElementById('ticketResult').style.color = "#ff3333";
+                document.getElementById('ticketResult').textContent = data.message || "Booking failed!";
+            }
+        })
+        .catch(() => {
+            document.getElementById('ticketResult').style.color = "#ff3333";
+            document.getElementById('ticketResult').textContent = "Something went wrong!";
+        });
+    };
+});
+</script>
+</body>
+</html>

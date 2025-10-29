@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Check Result</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #111; color: #fff; font-family: 'Montserrat', Arial, sans-serif; margin: 0; min-height: 100vh; }
+        .result-main { display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+        .result-box { background: #181818; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); padding: 40px 32px 32px 32px; max-width: 420px; width: 100%; text-align: center; }
+        .result-box h2 { margin-bottom: 24px; font-size: 2rem; color: #ffd61e; letter-spacing: 1px; }
+        .result-form label { display: block; text-align: left; margin-bottom: 6px; margin-top: 18px; font-weight: 600; color: #fff; }
+        .result-form input { width: 100%; padding: 12px 14px; margin-bottom: 6px; border-radius: 7px; border: none; background: #232323; color: #fff; font-size: 1rem; outline: none; transition: box-shadow 0.2s; }
+        .result-form input:focus { box-shadow: 0 0 0 2px #ffd61e; }
+        .BOOK_NOW { width: 100%; margin-top: 18px; background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%); color: #fff !important; border: none; border-radius: 8px; padding: 14px 0; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 16px rgba(255, 152, 0, 0.15); transition: background 0.3s, transform 0.2s; outline: none; }
+        .BOOK_NOW:hover { background: linear-gradient(90deg, #ff5722 0%, #ff9800 100%); transform: translateY(-2px) scale(1.04); }
+        #resultMsg { margin-top: 24px; font-size: 1.1rem; font-weight: bold; min-height: 32px; }
+        .result-percentage { color: #ffd61e; font-size: 2.2rem; font-weight: bold; }
+        .result-id { color: #2196f3; font-size: 1.1rem; font-weight: 600; }
+        .redirect-msg { color: #ff9800; margin-top: 18px; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="home">About</a></li>
+                <li><a href="home">Contact</a></li>
+                <li><a href="home">Details</a></li>
+            </ul>
+        </div>
+        <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+        </div>
+    </header>
+    <div class="header_tow">
+        <div class="manu_bar_sec">
+            <ul>
+                <li><a href="TRAIN_Tikit.html">FLITE Ticket</a></li>
+                <li><a href="train.html">TRAIN Tikit</a></li>
+                <li><a href="gov.html">GOVERNMENT Website</a></li>
+                <li><a href="movie.html">MOVIE Tikit</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="result-main">
+        <div class="result-box">
+            <h2>Check Your Result</h2>
+            <form id="resultForm" class="result-form" autocomplete="off">
+                <label for="enrollment">Enrollment Number</label>
+                <input type="text" id="enrollment" maxlength="10" minlength="10" required placeholder="Enter 10 digit enrollment number">
+                <button type="submit" class="BOOK_NOW">Search for Result</button>
+            </form>
+            <div id="resultMsg"></div>
+            <div id="redirectMsg" class="redirect-msg"></div>
+        </div>
+    </div>
+    <script>
+        // Auth button logic (login/logout)
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn = document.getElementById('authBtn');
+            const token = localStorage.getItem('token');
+            if (token) {
+                btn.textContent = "Logout";
+                btn.onclick = function () {
+                    localStorage.removeItem('token');
+                    window.location.href = 'logout.html';
+                };
+            } else {
+                btn.textContent = "Login";
+                btn.onclick = function () {
+                    window.location.href = 'login.html';
+                };
+            }
+        });
+
+        // --- Status polling logic (like plane_booking.html) ---
+        // Only allow access if user is active for this subcategory
+        const token = localStorage.getItem('token');
+        const subcatId = localStorage.getItem('lastSubcatId');
+        if (!token || !subcatId) {
+            alert("Unauthorized access!");
+            window.location.href = "index.html";
+        } else {
+            function pollStatus() {
+                fetch(`http://localhost:5000/api/register/queue-position/${subcatId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "completed") {
+                        alert("Your session is completed. Redirecting...");
+                        window.location.href = "index.html";
+                    } else if (data.status !== "active") {
+                        alert("You are not allowed to access this page now.");
+                        window.location.href = "index.html";
+                    }
+                });
+            }
+            pollStatus();
+            setInterval(pollStatus, 3000);
+        }
+
+        // Result form logic (only allow once per enrollment)
+        document.getElementById('resultForm').onsubmit = function(e) {
+            e.preventDefault();
+            const enrollment = document.getElementById('enrollment').value.trim();
+            const msgDiv = document.getElementById('resultMsg');
+            const redirectDiv = document.getElementById('redirectMsg');
+            msgDiv.style.color = "#ff3333";
+            msgDiv.textContent = "";
+            redirectDiv.textContent = "";
+
+            // Only allow once per enrollment number (localStorage)
+            if (localStorage.getItem('resultSearched_' + enrollment) === 'yes') {
+                msgDiv.textContent = "You have already checked your result!";
+                return;
+            }
+
+            if (!/^\d{10}$/.test(enrollment)) {
+                msgDiv.textContent = "Enrollment must be 10 digits.";
+                return;
+            }
+
+            fetch('http://localhost:5000/api/result/get', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enrollment })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msgDiv.style.color = "#4caf50";
+                    msgDiv.innerHTML = `
+                        <div>Your Percentage:</div>
+                        <div class="result-percentage">${data.percentage}%</div>
+                        <div style="margin-top:10px;">Result ID: <span class="result-id">${data.resultId}</span></div>
+                    `;
+                    // Set flag so user can't search again with this enrollment
+                    localStorage.setItem('resultSearched_' + enrollment, 'yes');
+                    // Show redirect message and redirect after 15 seconds
+                    let sec = 15;
+                    redirectDiv.textContent = `Redirecting to Home in ${sec} seconds...`;
+                    const interval = setInterval(() => {
+                        sec--;
+                        if (sec > 0) {
+                            redirectDiv.textContent = `Redirecting to Home in ${sec} seconds...`;
+                        } else {
+                            clearInterval(interval);
+                            window.location.href = "index.html";
+                        }
+                    }, 1000);
+                } else {
+                    msgDiv.style.color = "#ff3333";
+                    msgDiv.textContent = data.message || "Something went wrong!";
+                }
+            })
+            .catch(() => {
+                msgDiv.style.color = "#ff3333";
+                msgDiv.textContent = "Something went wrong!";
+            });
+        };
+    </script>
+</body>
+</html>

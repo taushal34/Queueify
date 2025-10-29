@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRAIN Ticket</title>
+    <link rel="stylesheet" href="TRAIN_Tikit.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="home">About</a></li>
+                <li><a href="home">Contact</a></li>
+                <li><a href="home">Details</a></li>
+            </ul>
+        </div>
+        <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+        </div>
+    </header>
+
+    <div class="header_tow">
+        <div class="manu_bar_sec">
+            <ul>
+                <li><a href="TRAIN_Tikit.html">FLITE Ticket</a></li>
+                <li><a href="train.html">TRAIN Tikit</a></li>
+                <li><a href="gov.html">GOVERNMENT Website</a></li>
+                <li><a href="movie.html">MOVIE Tikit</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="six_box_tikit animate__animated animate__bounceInDown">
+        <div class="ticket_box">
+            <!-- Air India Express -->
+            <div class="main">
+                <div class="box_one">
+                    <div class="image_1">
+                        <div class="content">
+                            <i class="fa-solid fa-plane-departure"></i>
+                            <h3>₹30000,28000 or 22000</h3>
+                            <h1>Air India Express</h1>
+                            <button class="submit-btn" id="queueBtn_AirIndia" onclick="bookNow('68e4a9eaa56b7e5b2e6eb1a9', 'queueBtn_AirIndia')">BOOK YOUR QUEUE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- SpiceJet -->
+            <div class="main">
+                <div class="box_two">
+                    <div class="image_2">
+                        <div class="content">
+                            <i class="fa-solid fa-plane"></i>
+                            <h3>₹28000,27000 or 26000</h3>
+                            <h1>SpiceJet</h1>
+                            <button class="submit-btn" id="queueBtn_SpiceJet" onclick="bookNow('68e4a9eaa56b7e5b2e6eb1aa', 'queueBtn_SpiceJet')">BOOK YOUR QUEUE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Indigo -->
+            <div class="main">
+                <div class="box_three">
+                    <div class="image_3">
+                        <div class="content">
+                            <i class="fa-solid fa-plane-arrival"></i>
+                            <h3>₹25000,20000 or 18000</h3>
+                            <h1>Indigo</h1>
+                            <button class="submit-btn" id="queueBtn_Indigo" onclick="bookNow('68e4a9eaa56b7e5b2e6eb1ab', 'queueBtn_Indigo')">BOOK YOUR QUEUE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let pollingInterval = null;
+        let timerInterval = null;
+        let isRegistering = false;
+
+        function bookNow(subcategoryId, btnId) {
+            if (isRegistering) return;
+            isRegistering = true;
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Please login first!");
+                window.location.href = 'login.html';
+                isRegistering = false;
+                return;
+            }
+            fetch(`http://localhost:5000/api/register/${subcategoryId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                isRegistering = false;
+                // Message div create or get
+                let msgDiv = document.getElementById('queueMsg');
+                if (!msgDiv) {
+                    msgDiv = document.createElement('div');
+                    msgDiv.id = 'queueMsg';
+                    msgDiv.style.color = '#ff3333';
+                    msgDiv.style.fontWeight = 'bold';
+                    msgDiv.style.marginTop = '15px';
+                    document.body.appendChild(msgDiv);
+                }
+                if (data && data.position) {
+                    msgDiv.textContent = "";
+                    alert(`You are registered in queue!\nYour position: ${data.position}\nStatus: waiting`);
+                    startPollingStatus(subcategoryId, btnId);
+                } else if (data && data.message) {
+                    msgDiv.textContent = data.message;
+                } else {
+                    msgDiv.textContent = "Registration failed!";
+                }
+            })
+            .catch(() => {
+                isRegistering = false;
+                let msgDiv = document.getElementById('queueMsg');
+                if (!msgDiv) {
+                    msgDiv = document.createElement('div');
+                    msgDiv.id = 'queueMsg';
+                    msgDiv.style.color = '#ff3333';
+                    msgDiv.style.fontWeight = 'bold';
+                    msgDiv.style.marginTop = '15px';
+                    document.body.appendChild(msgDiv);
+                }
+                msgDiv.textContent = "Something went wrong!";
+            });
+        }
+
+        function startPollingStatus(subcategoryId, btnId) {
+            if (pollingInterval) clearInterval(pollingInterval);
+            if (timerInterval) clearInterval(timerInterval);
+
+            // Status & timer display elements
+            let statusText = document.getElementById('queueStatusText');
+            let timerText = document.getElementById('queueTimerText');
+            if (!statusText) {
+                statusText = document.createElement('div');
+                statusText.id = 'queueStatusText';
+                statusText.style.color = '#ffd61e';
+                statusText.style.fontWeight = 'bold';
+                statusText.style.marginTop = '10px';
+                document.body.appendChild(statusText);
+            }
+            if (!timerText) {
+                timerText = document.createElement('div');
+                timerText.id = 'queueTimerText';
+                timerText.style.color = '#ff9800';
+                timerText.style.fontWeight = 'bold';
+                timerText.style.marginTop = '5px';
+                document.body.appendChild(timerText);
+            }
+
+            let phase = "waiting";
+            let secondsLeft = 60;
+
+            function updateTimer() {
+                timerText.textContent = `Time left: ${secondsLeft} sec`;
+                if (secondsLeft > 0) secondsLeft--;
+                else clearInterval(timerInterval);
+            }
+
+            // Start timer for waiting phase
+            timerInterval = setInterval(updateTimer, 1000);
+
+            pollingInterval = setInterval(() => {
+                const token = localStorage.getItem('token');
+                fetch(`http://localhost:5000/api/register/queue-position/${subcategoryId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    statusText.textContent = `Status: ${data.status}`;
+                    if (data.status === "waiting" && phase !== "waiting") {
+                        phase = "waiting";
+                        secondsLeft = 60;
+                        clearInterval(timerInterval);
+                        timerInterval = setInterval(updateTimer, 1000);
+                    }
+                    if (data.status === "active" && phase !== "active") {
+                        phase = "active";
+                        secondsLeft = 60;
+                        clearInterval(timerInterval);
+                        timerInterval = setInterval(updateTimer, 1000);
+                        clearInterval(pollingInterval);
+                        showBookNowButton(btnId, subcategoryId);
+                        setTimeout(() => {
+                            alert("Your session is completed.");
+                            window.location.href = "index.html";
+                        }, 60 * 1000); // 1 min
+                    }
+                    if (data.status === "completed") {
+                        clearInterval(pollingInterval);
+                        clearInterval(timerInterval);
+                        timerText.textContent = "";
+                        alert("Your session is completed. Redirecting...");
+                        window.location.href = "index.html";
+                    }
+                });
+            }, 3000);
+        }
+
+        function showBookNowButton(btnId, subcategoryId) {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.textContent = "BOOK NOW";
+                btn.onclick = function() {
+                    localStorage.setItem('lastSubcatId', subcategoryId);
+                    window.location.href = "plane_booking.html";
+                };
+                btn.className = "BOOK_NOW";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const authBtn = document.getElementById('authBtn');
+            const token = localStorage.getItem('token');
+            if (authBtn) {
+                if (token) {
+                    authBtn.textContent = "Logout";
+                    authBtn.onclick = function () {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('role');
+                        window.location.href = 'logout.html';
+                    };
+                } else {
+                    authBtn.textContent = "Login";
+                    authBtn.onclick = function () {
+                        window.location.href = 'login.html';
+                    };
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

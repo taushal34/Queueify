@@ -1,26 +1,13 @@
 const Queue = require("bull");
 
-const redisConfig = {
-  redis: {
-    host: process.env.REDIS_HOST || "127.0.0.1",
-    port: Number(process.env.REDIS_PORT) || 6379
-  }
+const getQueueForSubcategory = (subcatId) => {
+    console.log(`Initializing queue for subcategory: ${subcatId}`);
+    return new Queue(subcatId, {
+        redis: {
+            host: "127.0.0.1", // Redis host
+            port: 6379,        // Redis port
+        },
+    });
 };
 
-// cache to reuse Queue instances
-const queues = new Map();
-
-/**
- * getQueueForSubcategory(subcatId)
- * returns a Bull queue instance for that subcategory
- */
-function getQueueForSubcategory(subcatId) {
-  const name = `queue:subcategory:${subcatId}`;
-  if (queues.has(name)) return queues.get(name);
-
-  const q = new Queue(name, redisConfig);
-  queues.set(name, q);
-  return q;
-}
-
-module.exports = { getQueueForSubcategory, queues };
+module.exports = { getQueueForSubcategory };

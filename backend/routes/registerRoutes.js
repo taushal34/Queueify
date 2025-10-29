@@ -1,14 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { registerForSubcategory,deleteRequest,getUserQueuePosition } = require("../controllers/registerController");
-const auth = require("../middleware/authMiddleware");
+const { registerForSubcategory, getUserQueuePosition } = require("../controllers/registerController");
+const authMiddleware = require("../middleware/authMiddleware");
 
-// User must be logged in to register
-router.post("/:subcatId", auth, registerForSubcategory, deleteRequest);
+router.post("/:subcatId", authMiddleware, registerForSubcategory);
 
-router.delete("/:requestId", auth, deleteRequest);
+// NEW: Get user's queue position and status
+router.get("/queue-position/:subcatId", authMiddleware, getUserQueuePosition);
 
-router.get("/:subcatId/position", auth, getUserQueuePosition);
 module.exports = router;
-
-

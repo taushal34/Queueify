@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<body>
+ <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="home">About</a></li>
+                <li><a href="home">Contect</a></li>
+                <li><a href="home">Details</a></li>
+            </ul>
+        </div>
+        <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+            <!-- <a href="form.html" id="adminFormBtn" class="submit-btn" style="display:none; margin-left:10px;">Admin Form</a> -->
+        </div>
+    </header>
+    <div class="header_tow">
+        <div class="manu_bar_sec">
+            <ul>
+                <!-- <div id="category-bar" style="margin: 24px 16px 0 16px;"></div>
+<div id="subcategory-area" style="margin: 24px 16px;"></div> -->
+                <li><a href="TRAIN_Tikit.html">FLITE Ticket</a></li>
+                <li><a href="train.html">TRAIN Tikit</a></li>
+                <li><a href="gov.html">GOVERNMENT Website</a></li>
+                <li><a href="movie.html">MOVIE Tikit</a></li>
+                
+            </ul>
+        </div>
+    </div>
+<script src="auth.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const authBtn = document.getElementById('authBtn');
+    const adminBtn = document.getElementById('adminFormBtn');
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    // Show only one button: Login or Logout
+    if (authBtn) {
+        if (token) {
+            authBtn.textContent = "Logout";
+            authBtn.onclick = function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                window.location.href = 'logout.html';
+            };
+        } else {
+            authBtn.textContent = "Login";
+            authBtn.onclick = function() {
+                window.location.href = 'login.html';
+            };
+        }
+    }
+
+    // Show Admin Form link only for admin
+    if (adminBtn) {
+        if (role && role.toLowerCase() === "admin" && token) {
+            adminBtn.style.display = "inline-block";
+        } else {
+            adminBtn.style.display = "none";
+        }
+    }
+});
+</script>
+</body>
+</html>

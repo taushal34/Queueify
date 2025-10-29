@@ -28,7 +28,7 @@ exports.signup = async (req, res) => {
     delete userObj.password;
 
     // Signup પછી પણ token return કરો
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "90d" });
 
     res.status(201).json({
       message: "Signup successful",
@@ -61,7 +61,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "90d" }
     );
 
     const userObj = user.toObject();

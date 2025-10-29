@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queueify - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="asesets/image/logoo.png" alt="Queueify Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="manu_bar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">Details</a></li>
+            </ul>
+        </div>
+       <div class="header-right">
+            <button id="authBtn" class="submit-btn">Login</button>
+        </div>
+    </header>
+   <main class="auth-container">
+        <form class="auth-form" action="#" method="POST">
+            <h2>Log In</h2>
+            
+            <div class="input-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">🔒 Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Log In</button>
+            
+            <p class="switch-link">
+                New user? <a href="signup.html">Sign Up</a>
+            </p>
+        </form>
+    </main>
+<script >
+document.querySelector('.auth-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+        if (data.user.role === "admin") {
+            alert('Admin is login');
+        } else {
+            alert('User is login');
+        }
+        window.location.href = 'index.html';
+    } else {
+        alert(data.message || 'Login failed');
+    }
+});
+</script>
+</body>
+</html>
